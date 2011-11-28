@@ -15,8 +15,8 @@
    </dependencies>
    <modules>
     <module>core</module>
-    <module>vaadinClient</module>
     <module>client</module>
+    <module>server</module>
   </modules>
   
    <build>

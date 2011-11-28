@@ -1,0 +1,18 @@
+<classpath>
+  <classpathentry kind="src" path="src/main/java" including="**/*.java"/>
+  <classpathentry kind="src" path="src/main/resources" excluding="**/*.java"/>
+  <classpathentry kind="output" path="target/classes"/>
+  <classpathentry kind="var" path="M2_REPO/org/apache/ant/ant/1.7.0/ant-1.7.0.jar"/>
+  <classpathentry kind="var" path="M2_REPO/ant/ant-jakarta-oro/1.6.1/ant-jakarta-oro-1.6.1.jar"/>
+  <classpathentry kind="var" path="M2_REPO/org/apache/ant/ant-launcher/1.7.0/ant-launcher-1.7.0.jar"/>
+  <classpathentry kind="var" path="M2_REPO/asm/asm/2.2.1/asm-2.2.1.jar"/>
+  <classpathentry kind="var" path="M2_REPO/asm/asm-tree/2.2.1/asm-tree-2.2.1.jar"/>
+  <classpathentry kind="var" path="M2_REPO/net/sourceforge/cobertura/cobertura/1.9rc1/cobertura-1.9rc1.jar"/>
+  <classpathentry kind="src" path="/intellidog-core"/>
+  <classpathentry kind="var" path="M2_REPO/jcommon/jcommon/0.9.5/jcommon-0.9.5.jar"/>
+  <classpathentry kind="var" path="M2_REPO/jfree/jfreechart/1.0.13/jfreechart-1.0.13.jar"/>
+  <classpathentry kind="var" path="M2_REPO/joone/joone/1.0/joone-1.0.jar"/>
+  <classpathentry kind="var" path="M2_REPO/log4j/log4j/1.2.9/log4j-1.2.9.jar"/>
+  <classpathentry kind="var" path="M2_REPO/oro/oro/2.0.8/oro-2.0.8.jar"/>
+  <classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+</classpath>

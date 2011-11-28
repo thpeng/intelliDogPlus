@@ -1,0 +1,233 @@
+<?xml version="1.0"?>
+<project name="IntelliDOG" default="compile">
+
+<property name="src.dir" location="src"/>	
+<property name="build.dir" location="build"/>	
+<property name="test.dir" location="${src.dir}/intelliDOG.ai.test"/>	
+<property name="test.reports" value="reports" />
+<property name="ressources.dir" value="ressources" />
+	
+<property name="cobertura.reports" value="cobertura-report" />	
+<property name="lib.dir" value="lib" />
+<property name="instrumented.dir" value="instrumented-classes" />
+	
+<!-- Always make environment variables available with the "env." prefix. --> 
+<property environment="env"/> 
+
+<!-- Make sure that JUnit is installed . --> 
+<available file="${env.JUNIT_HOME}" type="dir" property="junit.available"/>
+<fail message="This package requires JUnit to be installed and JUNIT_HOME defined" unless="junit.available"/>
+
+	
+	<path id="classpath.test">
+	  <pathelement location="${build.dir}" />
+	  <fileset file="${env.JUNIT_HOME}/junit*.jar"/>
+		<fileset dir="${lib.dir}">
+			<include name="*.jar"/>
+		</fileset>
+	</path>
+	
+	<path id="cobertura.classpath">
+			<fileset dir="${lib.dir}">
+				<include name="*.jar"/>
+			</fileset>
+	</path> 
+
+	<path id="instrumented-classpath" >
+			<pathelement path="${instrumented.dir}"/>
+	</path>
+		
+		
+	<taskdef classpathref="cobertura.classpath" resource="tasks.properties" />
+		
+	
+    <target name="clean" description="remove intermediate files">
+        <delete dir="${build.dir}"/>
+    </target>
+
+    <target name="clobber" depends="clean" description="remove all artifact files">
+        <delete file="IntelliDOG.jar"/>
+    	<delete dir="${javadoc.dir}" />
+    	<delete dir="${test.reports}" />
+    	<delete dir="${instrumented.dir}" />
+    	<delete dir="${cobertura.reports}" />
+    	<delete file="cobertura.ser"/>
+    </target>
+
+ 	<target name="compile"
+     	description="compile the Java source code to class files">
+		<mkdir dir="${build.dir}"/>
+		<javac srcdir="." destdir="${build.dir}" debug="on">
+                <classpath refid="classpath.test"/>
+        </javac>
+ 		 <copy todir="${build.dir}/${ressources.dir}">
+ 		   		<fileset dir="${src.dir}/${ressources.dir}" >
+ 		   			<include name="**/*" />
+ 		   		</fileset>
+ 		 </copy>
+    </target>
+
+    <target name="jar" depends="compile"
+     description="create a Jar file for the application">
+        <jar destfile="IntelliDOG.jar">
+        	<zipfileset src="${lib.dir}/jfreechart-1.0.11.jar" />
+        	<zipfileset src="${lib.dir}/jcommon-1.0.14.jar" />
+        	<zipfileset src="${lib.dir}/joone-engine.jar" />
+            <fileset dir="${build.dir}" includes="**/*.class"/>
+        	<fileset dir="${build.dir}" includes="**/*.png"/>
+            <manifest>
+                <attribute name="Main-Class" value="intelliDOG.ai.ui.IntelliDOGStarter"/>     
+            </manifest>
+        </jar>
+    </target>
+
+	
+	<target name="run-ea" depends="compile" description="run IntelliDOG with asserts enabled">
+      <java classpath="${build.dir}" classname="intelliDOG.ai.ui.IntelliDOGStarter" fork="true"> 
+      	<jvmarg value="-ea"/>
+      	<classpath refid="classpath.test"/>
+      </java>
+    </target>
+
+
+	<target name="run" depends="compile" description="run IntelliDOG">
+      <java classpath="${build.dir}" classname="intelliDOG.ai.ui.IntelliDOGStarter" fork="true">
+      	 <classpath refid="classpath.test"/>
+      </java>
+    </target>
+	
+	
+	<target name="run-tests" depends="compile" description="run all JUnit tests">
+		<junit fork="yes" showoutput="true">
+			<classpath refid="classpath.test"/>
+		      <formatter type="brief" usefile="no" />
+				
+			<jvmarg value="-ea"/>	
+		      <batchtest>
+		      	<fileset dir="${build.dir}">
+		      	        <include name="**/*Test.class" />
+		      			<exclude name="**/*TwoStepBotTest.class"/>
+		      	      </fileset>
+		      </batchtest>
+		
+		    </junit>
+	</target>
+	
+	<!-- run single testcase defined on the command line -->
+	<target name="ensure-test-name" unless="test">
+	    <fail message="You must run this target with -Dtest=TestName"/>
+	</target>
+
+	<target name="run-single-test" description="Runs the test you specify on the command line with -Dtest=" 
+			depends="compile, ensure-test-name">
+	    <junit fork="yes"> 
+	        <classpath refid="classpath.test" />
+	        <formatter type="brief" usefile="no"/>
+	        <batchtest>
+	            <fileset dir="${build.dir}">
+	                <include name="**/${test}.class"/>
+	            </fileset>
+	        </batchtest>
+	    </junit>
+	</target>
+	
+	
+	<target name="test-html" depends="compile" description="run all JUnit tests and create a summary">
+  		<mkdir dir="${test.reports}"/>
+		<junit fork="yes" printsummary="no" haltonfailure="no">
+		<batchtest fork="yes" todir="${test.reports}" >
+      		<fileset dir="${build.dir}">
+        		<include name="**/*Test.class" />
+				<exclude name="**/*TwoStepBotTest.class"/>
+      		</fileset>
+    	</batchtest>
+    	<formatter type="xml" />
+    	<classpath refid="classpath.test" />
+  		</junit>
+
+  		<junitreport todir="${test.reports}">
+    		<fileset dir="${test.reports}">
+      			<include name="TEST-*.xml" />
+		    </fileset>
+		    <report todir="${test.reports}" />
+  		</junitreport>
+	</target>
+	
+	<target name="test-html-ea" depends="compile" description="run all JUnit tests (enable assert) and create a summary">
+  		<mkdir dir="${test.reports}"/>
+
+		<junit fork="yes" printsummary="no" haltonfailure="no">
+		<jvmarg value="-ea"/>
+		<batchtest fork="yes" todir="${test.reports}" >
+      		<fileset dir="${build.dir}">
+        		<include name="**/*Test.class" />
+				<exclude name="**/*TwoStepBotTest.class"/>
+      		</fileset>
+    	</batchtest>
+    	<formatter type="xml" />
+    	<classpath refid="classpath.test" />
+  		</junit>
+
+  		<junitreport todir="${test.reports}">
+    		<fileset dir="${test.reports}">
+      			<include name="TEST-*.xml" />
+		    </fileset>
+		    <report todir="${test.reports}" />
+  		</junitreport>
+	</target>
+
+	<target name="javadoc" description="Build the javadocs for the source code.">
+	    <property name="doc.javadoc" value="${build.dir}/doc/javadocs"/>
+	    <javadoc destdir="${doc.javadoc}" 
+	    	 classpathref="classpath.test"
+	             packagenames="intelliDOG.*"
+	             sourcepath="${src.dir}"
+	             version="true" Use="true" noindex="true"
+	             Windowtitle="IntelliDOG"
+	             Doctitle="IntelliDOG" >
+	      <arg line="-private" />
+	    </javadoc>
+	  </target>
+
+	
+	<target name="instrument" depends="compile">
+		<mkdir dir="${instrumented.dir}"/>  
+		<cobertura-instrument todir="${instrumented.dir}">
+		  
+		  	<classpath refid="classpath.test" />
+		  	<fileset dir="${build.dir}">
+		      <include name="**/*.class"/>
+		    </fileset>
+		</cobertura-instrument>
+	</target>
+	
+	<!-- Runs JUnit tests for preparing analysis for cobertura --> 
+	<target name="run-junit" depends="instrument">
+		  <mkdir dir="${cobertura.reports}"/>
+		  <junit  printSummary="yes" fork="true">
+		   
+		  	<classpath refid="instrumented-classpath" />
+		  	<classpath refid="cobertura.classpath" />
+			<classpath refid="classpath.test" />
+		
+		    <batchtest todir="${cobertura.reports}">
+		      <fileset dir="${instrumented.dir}">
+		        <include name="**/*Test.class" />
+		    	<exclude name="**/*TwoStepBotTest.class"/>
+		      </fileset>
+		    <formatter type="plain"/>
+		    </batchtest> 
+		  </junit>
+	</target>
+	
+	<!-- Create the actual report -->
+	<target name="coverage-report" depends="run-junit" >
+			<cobertura-report format="html" datafile="cobertura.ser" srcdir="${src.dir}" destdir="${cobertura.reports}" >
+				
+					  	<classpath refid="cobertura.classpath" />
+						<classpath refid="classpath.test" />
+					  		
+			</cobertura-report>
+	</target>
+</project>
+
